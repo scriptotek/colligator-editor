@@ -1,0 +1,17 @@
+{
+  "name": "colligator-editor",
+  "version": "1.0.0",
+  "description": "Simple editing UI for Colligator",
+  "main": "index.html",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-preset-es2015": "^6.14.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "babel src -d build"
+  },
+  "author": "Dan Michael O. Heggø <danmichaelo@gmail.com>",
+  "license": "ISC"
+}

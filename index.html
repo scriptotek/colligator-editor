@@ -1,0 +1,35 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Colligator Editor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+    <style>
+    .container {
+        margin-top: 2em;
+    }
+    li > div {
+        display: flex;
+        align-items: flex-start;
+    }
+    li img {
+        margin-right: 1em;
+    }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <!-- route outlet -->
+        <!-- component matched by the route will render here -->
+        <router-view></router-view>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/vue/2.0.0-rc.6/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/vue.resource/1.0.3/vue-resource.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/vue.router/2.0.0-rc.5/vue-router.min.js"></script>
+    <script src="src/main.js"></script>
+</body>
+</html>
