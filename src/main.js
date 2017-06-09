@@ -163,11 +163,12 @@ const Search = {
 const SearchResults = {
   template: `
     <div>
-      <div v-show="busy">Hold on…</div>
       <div v-show="!busy">Got {{ documents.length }} of {{ totalResults }} results</div>
       <ul class="list-group">
         <document :doc="doc" v-for="doc in documents"></document>
       </ul>
+      <div v-show="busy">Henter...</div>
+      <button v-on:click="more()" v-show="!busy && documents.length < totalResults" class="btn btn-default">Hent flere</button>
     </div>
   `,
   created: function () {
@@ -184,19 +185,29 @@ const SearchResults = {
   data: function () {
     return {
       documents: [],
+      from: 0,
       totalResults: 0,
       busy: true
     }
   },
   methods: {
-    fetchResults: function () {
-      this.documents = []
+    more: function() {
+      this.fetchResults(this.from)
+    },
+    fetchResults: function (from) {
+      if (!from) {
+        from = 0
+        this.documents = []
+      }
       this.busy = true
       console.log('Searching for: ' + this.$route.query.q)
       let documents = this.$resource('/colligator/api/documents{/id}')
 
-      documents.get({q: this.$route.query.q}).then((response) => {
-        this.documents = response.body.documents
+      documents.get({q: this.$route.query.q, offset: from}).then((response) => {
+        response.body.documents.forEach((doc) => {
+          this.documents.push(doc)
+          this.from++
+        })
         this.totalResults = response.body.total
         this.busy = false
       }, (response) => {
