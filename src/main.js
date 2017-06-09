@@ -53,8 +53,8 @@ const EditableCover = {
       this.url = this.doc.cover ? this.doc.cover.url : ''
     },
     submit: function () {
-      let documents = this.$resource('https://colligator.biblionaut.net/api/documents{/id}', {}, {
-        saveCover: {method: 'POST', url: 'https://colligator.biblionaut.net/api/documents{/id}/cover'}
+      let documents = this.$resource('/colligator/api/documents{/id}', {}, {
+        saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'}
       })
       if (this.busy) {
         return
@@ -94,6 +94,7 @@ const Document = {
         <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />
         <div>
           <h3>{{ doc.title }}</h3>
+          <p v-if="doc.description">{{ doc.description }}</p>
           ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
           <div v-for="holding in localHoldings">
             {{ holding.barcode }} :
@@ -192,7 +193,7 @@ const SearchResults = {
       this.documents = []
       this.busy = true
       console.log('Searching for: ' + this.$route.query.q)
-      let documents = this.$resource('https://colligator.biblionaut.net/api/documents{/id}')
+      let documents = this.$resource('/colligator/api/documents{/id}')
 
       documents.get({q: this.$route.query.q}).then((response) => {
         this.documents = response.body.documents
