@@ -142,7 +142,9 @@ const Search = {
   },
   watch: {
     // call again the method if the route changes
-    '$route': 'getQueryString'
+    '$route': function() {
+      this.getQueryString()
+    }
   },
   data: () => ({
     query: ''
@@ -178,7 +180,9 @@ const SearchResults = {
   },
   watch: {
     // call again the method if the route changes
-    '$route': 'fetchResults'
+    '$route': function() {
+      this.fetchResults()
+    }
   },
   components: {
     'document': Document
