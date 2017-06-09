@@ -166,7 +166,7 @@ const SearchResults = {
     <div>
       <div v-show="!busy">Got {{ documents.length }} of {{ totalResults }} results</div>
       <ul class="list-group">
-        <document :doc="doc" v-for="doc in documents"></document>
+        <document :doc="doc" v-for="doc in documents" :key="doc.id"></document>
       </ul>
       <div v-show="busy">Henter...</div>
       <button v-on:click="more()" v-show="!busy && documents.length < totalResults" class="btn btn-default">Hent flere</button>
