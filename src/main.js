@@ -4,10 +4,11 @@
 const EditableCover = {
   template: `
     <div>
-      <div v-if="!editMode" >
+      <div v-if="!editMode">
         Omslagsbilde:
-        <span v-if="doc.cover">
-          <a :href="doc.cover.url" target="_blank">{{ doc.cover.url.length > 80 ? doc.cover.url.substr(0,80) + '…' : doc.cover.url }}</span></a>
+        <span v-if="doc.cover && doc.cover.url">
+          <a :href="doc.cover.url" target="_blank">{{ doc.cover.url.length > 80 ? doc.cover.url.substr(0,80) + '…' : doc.cover.url }}</a>
+        </span>
         <span v-else>(mangler)</span>
         <button v-on:click="edit" class="btn btn-default btn-xs">Rediger</button>
       </div>
@@ -23,7 +24,7 @@ const EditableCover = {
           <button type="button" class="btn btn-default btn-sm" v-on:click="cancel">Avbryt</button>
           <button type="submit" class="btn btn-primary btn-sm">Lagre</button>
         </span>
-        <div class="alert alert-danger" role="alert" v-if="errors.length">
+        <div class="alert alert-danger" role="alert" v-if="errors && errors.length">
           <div v-for="error in errors">{{ error }}</div>
         </div>
       </form>
