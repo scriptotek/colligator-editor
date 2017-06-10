@@ -3,6 +3,7 @@ const Documents = Vue.resource(
   null,
   {
     saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'},
+    saveDescription: {method: 'POST', url: '/colligator/api/documents{/id}/description'},
     cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'}
   },
   {
@@ -148,6 +149,119 @@ const EditableCover = {
   }
 }
 
+
+// ---------------------------------------------------------------------------
+// EditableDescription.vue
+// import Documents from 'Documents.vue'
+// import GlobalState from 'GlobalState.vue'
+
+const EditableDescription = {
+  template: `
+    <div>
+      <div v-if="canEdit">
+        <div v-if="!editMode">
+          <div v-if="doc.description && doc.description.text">
+            <button style="float:right" v-on:click="edit" class="btn btn-secondary btn-sm">Rediger beskrivelse</button>
+            <div style="font-style:italic; font-size:90%;" v-html="htmlText"></div>
+            <p style="font-size:70%; color:#888;">Kilde: {{ doc.description.source_url }}</p>
+          </div>
+          <span v-else>
+            <button v-on:click="edit" class="mt-2 mb-2 btn btn-outline-success btn-sm"> <i class="fa fa-heart" aria-hidden="true"></i> Legg til beskrivelse</button>
+          </span>
+        </div>
+        <form v-else v-on:submit.prevent="submit" class="mt-2">
+          <div class="form-group">
+            <label :for="'descriptionText' + doc.id">Beskrivelse:</label>
+          <textarea :id="'descriptionText' + doc.id"
+            class="form-control form-control-sm"
+            v-model="text" rows="8"></textarea>
+        </div>
+        <div class="form-group">
+            <label :for="'descriptionSourceUrl' + doc.id">Kilde:</label>
+            <input type="text" :id="'descriptionSourceUrl' + doc.id"
+              placeholder="URL til nettsiden du hentet beskrivelsen fra"
+              class="form-control form-control-sm col"
+              v-model="sourceUrl">
+              </div>
+          <span v-if="busy">
+            Lagrer…
+          </span>
+          <span v-else>
+            <button type="button" class="btn btn-secondary btn-sm" v-on:click="cancel">Avbryt</button>
+            <button type="submit" class="btn btn-primary btn-sm">Lagre</button>
+          </span>
+          <div class="alert alert-danger" role="alert" v-if="errors && errors.length">
+            <div v-for="error in errors">{{ error }}</div>
+          </div>
+        </form>
+      </div>
+    </div>
+  `,
+  props: {
+    doc: Object
+  },
+  computed: {
+    canEdit: () => GlobalState.canEdit,
+    htmlText: function() {
+      return this.text.replace(/\n/g, '<br>');
+    }
+  },
+  data: () => ({
+    text: '',
+    sourceUrl: '',
+    busy: false,
+    errors: [],
+    editMode: false
+  }),
+  created: function () {
+    this.text = this.doc.description ? this.doc.description.text : ''
+    this.sourceUrl = this.doc.description ? this.doc.description.source_url : ''
+  },
+  methods: {
+    edit: function () {
+      this.editMode = true
+
+      // Wait for Vue to update the DOM before we focus
+      setTimeout(() => document.getElementById('descriptionText' + this.doc.id).focus())
+    },
+    cancel: function () {
+      this.editMode = false
+      this.text = this.doc.description ? this.doc.description.text : ''
+      this.sourceUrl = this.doc.description ? this.doc.description.source_url : ''
+    },
+    failed: function (response) {
+      // error callback
+      console.log(response)
+      if (response.status === 401) {
+        this.errors = ['Ingen tilgang: ' + response.body]
+      } else {
+        this.errors = ['Save failed because of network or server issues.']
+      }
+      if (response.status === 422) {
+        this.errors = Object.keys(response.body).map(k => response.body[k][0])
+        console.log(this.errors)
+      }
+      this.busy = false
+    },
+    submit: function () {
+      if (this.busy) {
+        return
+      }
+      this.busy = true
+      this.errors = []
+      Documents.saveDescription({id: this.doc.id}, {text: this.text, source: 'editor', source_url: this.sourceUrl}).then((response) => {
+        this.busy = false
+        if (response.body.result !== 'ok') {
+          this.errors = [response.body.error]
+          return
+        }
+        this.doc.description = response.body.description
+        this.editMode = false
+      }, this.failed.bind(this))
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Document.vue
 // import EditableCover from 'EditableCover.vue'
@@ -183,7 +297,8 @@ const Document = {
     }
   },
   components: {
-    'editable-cover': EditableCover
+    'editable-cover': EditableCover,
+    'editable-description': EditableDescription,
   }
 }
 
@@ -316,6 +431,11 @@ const SearchResults = {
             // Initialize with default value since Vue cannot detect property addition or deletion
             // https://vuejs.org/v2/guide/reactivity.html
             doc.cannot_find_cover = 0;
+          }
+          if (doc.description) {
+            doc.description.text = doc.description.text.replace(/Ã¦/g, 'æ')
+            doc.description.text = doc.description.text.replace(/Ã¥/g, 'å')
+            doc.description.text = doc.description.text.replace(/Ã¸/g, 'ø')
           }
           this.documents.push(doc)
           this.from++
