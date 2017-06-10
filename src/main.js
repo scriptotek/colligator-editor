@@ -70,8 +70,8 @@ const EditableCover = {
         return
       }
       this.busy = true
-      this.error = ''
       documents.cannotFindCover({id: this.doc.id}, {}).then((response) => {
+      this.errors = []
         this.busy = false
         if (response.body.result !== 'ok') {
           this.errors = [response.body.error]
@@ -98,8 +98,8 @@ const EditableCover = {
         return
       }
       this.busy = true
-      this.error = ''
       documents.saveCover({id: this.doc.id}, {url: this.url}).then((response) => {
+      this.errors = []
         this.busy = false
         if (response.body.result !== 'ok') {
           this.errors = [response.body.error]
@@ -217,7 +217,8 @@ const Search = {
 const SearchResults = {
   template: `
     <div>
-      <div v-show="!busy">Got {{ documents.length }} of {{ totalResults }} results</div>
+      <div v-show="!busy && !error">Got {{ documents.length }} of {{ totalResults }} results</div>
+      <div v-show="error" class="alert alert-danger">{{ error }}</div>
       <ul class="list-group">
         <document :doc="doc" v-for="doc in documents" :key="doc.id"></document>
       </ul>
@@ -243,7 +244,8 @@ const SearchResults = {
       documents: [],
       from: 0,
       totalResults: 0,
-      busy: true
+      busy: true,
+      error: ''
     }
   },
   methods: {
@@ -259,7 +261,14 @@ const SearchResults = {
       console.log('Searching for: ' + this.$route.query.q)
       let documents = this.$resource('/colligator/api/documents{/id}')
 
+      this.error = ''
       documents.get({q: this.$route.query.q, offset: from}).then((response) => {
+        this.error = ''
+        if (typeof response.body != 'object') {
+          this.error = 'Server returned non-JSON response'
+          this.busy = false
+          return
+        }
         response.body.documents.forEach((doc) => {
           if (!doc.cannot_find_cover) {
             // Initialize with default value since Vue cannot detect property addition or deletion
@@ -274,6 +283,7 @@ const SearchResults = {
       }, (response) => {
         // error callback
         console.log(response)
+        this.error = 'Sorry, an error occured'
         this.busy = false
       })
     }
