@@ -34,32 +34,35 @@ const EditableCover = {
       <div v-if="canEdit">
         <div v-if="!editMode">
           Omslagsbilde:
-          <span v-if="doc.cover && doc.cover.url">
-            <a :href="doc.cover.url" target="_blank">{{ doc.cover.url.length > 80 ? doc.cover.url.substr(0,80) + '…' : doc.cover.url }}</a>
-            <button v-on:click="edit" class="btn btn-default btn-xs">Rediger</button>
+          <span v-if="doc.cover && doc.cover.cached">
+            <a v-if="doc.cover.url" :href="doc.cover.url" target="_blank">{{ doc.cover.url.length > 40 ? doc.cover.url.substr(0,40) + '…' : doc.cover.url }}</a>
+            <button v-on:click="edit" class="btn btn-secondary btn-sm">Rediger omslagsbilde</button>
           </span>
           <span v-else>
-            <button v-on:click="edit" class="btn btn-success btn-xs"> <em class="glyphicon glyphicon-heart"></em> Legg til</button>
+            <button v-on:click="edit" class="btn btn-outline-success btn-sm"> <i class="fa fa-heart" aria-hidden="true"></i> Legg til</button>
           </span>
-          <span v-if="!doc.cover || !doc.cover.url">
-            <button v-on:click="notFound" class="btn btn-warning btn-xs"> <em class="glyphicon glyphicon-ban-circle"></em> Jeg gir opp</button>
+          <span v-if="!doc.cover || !doc.cover.cached">
+            <button v-on:click="notFound" class="btn btn-outline-danger btn-sm"> <i class="fa fa-times" aria-hidden="true"></i> Jeg gir opp</button>
             <span v-if="doc.cannot_find_cover">
               {{ doc.cannot_find_cover }} person(er) ga opp å prøve å finne omslagsbilde.
             </span>
           </span>
         </div>
         <form v-else v-on:submit.prevent="submit" class="form-inline">
-          <div class="form-group">
-            <label :for="'coverUrl' + doc.id">Cover:</label>
-            <input type="text" :id="'coverUrl' + doc.id" class="form-control input-sm" style="width:600px" v-model="url">
+          <label :for="'coverUrl' + doc.id" class="mr-2">Omslagsbilde:</label>
+          <input type="text"
+            :id="'coverUrl' + doc.id"
+            class="col form-control form-control-sm mr-2"
+            v-model="url" placeholder="URL til omslagsbilde">
+          <div>
+            <span v-if="busy">
+              Lagrer…
+            </span>
+            <span v-else>
+              <button type="button" class="btn btn-secondary btn-sm" v-on:click="cancel">Avbryt</button>
+              <button type="submit" class="btn btn-primary btn-sm">Lagre</button>
+            </span>
           </div>
-          <span v-if="busy">
-            Hold on…
-          </span>
-          <span v-else>
-            <button type="button" class="btn btn-default btn-sm" v-on:click="cancel">Avbryt</button>
-            <button type="submit" class="btn btn-primary btn-sm">Lagre</button>
-          </span>
           <div class="alert alert-danger" role="alert" v-if="errors && errors.length">
             <div v-for="error in errors">{{ error }}</div>
           </div>
@@ -152,15 +155,19 @@ const EditableCover = {
 const Document = {
   template: `
     <li class="list-group-item">
-      <div>
+      <div style="width:100%">
         <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />
-        <div>
+        <div style="flex: 1 1 auto;">
           <h3>{{ doc.title }} <span style="color:#018D83">({{doc.year}})</span></h3>
-          <p v-if="doc.description">{{ doc.description }}</p>
-          ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
-          <div v-for="holding in localHoldings">
-            {{ holding.barcode }} :
-            {{ holding.callcode }}
+          <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>
+
+          <editable-description :doc="doc"></editable-description>
+          <div class="mb-2" style="font-size:85%; color: #008">
+            ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
+            <div v-for="holding in localHoldings">
+              {{ holding.barcode }} :
+              {{ holding.callcode }}
+            </div>
           </div>
           <editable-cover :doc="doc"></editable-cover>
         </div>
@@ -187,27 +194,27 @@ const Document = {
 const Search = {
   template: `
     <div>
-      <form v-on:submit.prevent="submitForm" class="form-inline">
+      <div>
         Søk med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:
-        <div class="row">
-          <div class="col-md-10">
-            <input v-model="query" class="form-control" style="width:100%">
-          </div>
-          <div class="col-md-2">
-            <button type="submit" class="btn btn-primary" style="width:100%">Search</button>
-          </div>
+      </div>
+      <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">
+        <div class="col mr-2">
+          <input v-model="query" class="form-control" style="width:100%">
         </div>
-        <p style="margin-top:.4em">
-          Du kan f.eks. søke etter
-          <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0' }}">
-            dokumenter i 42-samlingen som mangler omslagsbilde
-          </router-link>
-          eller
-          <router-link :to="{ path: '/search', query: { q: 'cover.created:&quot;' + today + '&quot;' }}">
-            dokumenter som har fått omslagsbilde i dag
-          </router-link>
-        </p>
+        <div>
+          <button type="submit" class="btn btn-primary" style="width:100%">Søk</button>
+        </div>
       </form>
+      <p>
+        Du kan f.eks. søke etter
+        <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0' }}">
+          dokumenter i 42-samlingen som mangler omslagsbilde
+        </router-link>
+        eller
+        <router-link :to="{ path: '/search', query: { q: 'cover.created:&quot;' + today + '&quot;' }}">
+          dokumenter som har fått omslagsbilde i dag
+        </router-link>
+      </p>
       <router-view></router-view>
     </div>
   `,
@@ -257,7 +264,9 @@ const SearchResults = {
         <document :doc="doc" v-for="doc in documents" :key="doc.id"></document>
       </ul>
       <div v-show="busy">Henter...</div>
-      <button v-on:click="more()" v-show="!busy && documents.length < totalResults" class="btn btn-default">Hent flere</button>
+      <p class="mt-2">
+        <button v-on:click="more()" v-show="!busy && documents.length < totalResults" class="btn btn btn-outline-info">Hent flere</button>
+      </p>
     </div>
   `,
   created: function () {
