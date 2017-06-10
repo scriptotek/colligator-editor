@@ -8,9 +8,17 @@ const EditableCover = {
         Omslagsbilde:
         <span v-if="doc.cover && doc.cover.url">
           <a :href="doc.cover.url" target="_blank">{{ doc.cover.url.length > 80 ? doc.cover.url.substr(0,80) + '…' : doc.cover.url }}</a>
+          <button v-on:click="edit" class="btn btn-default btn-xs">Rediger</button>
         </span>
-        <span v-else>(mangler)</span>
-        <button v-on:click="edit" class="btn btn-default btn-xs">Rediger</button>
+        <span v-else>
+          <button v-on:click="edit" class="btn btn-success btn-xs"> <em class="glyphicon glyphicon-heart"></em> Legg til</button>
+        </span>
+        <span v-if="!doc.cover || !doc.cover.url">
+          <button v-on:click="notFound" class="btn btn-warning btn-xs"> <em class="glyphicon glyphicon-ban-circle"></em> Jeg gir opp</button>
+          <span v-if="doc.cannot_find_cover">
+            {{ doc.cannot_find_cover }} person(er) ga opp å prøve å finne omslagsbilde.
+          </span>
+        </span>
       </div>
       <form v-else v-on:submit.prevent="submit" class="form-inline">
         <div class="form-group">
@@ -53,8 +61,37 @@ const EditableCover = {
       this.editMode = false
       this.url = this.doc.cover ? this.doc.cover.url : ''
     },
+    notFound: function () {
+      let documents = this.$resource('/colligator/api/documents{/id}', {}, {
+        saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'},
+        cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'}
+      })
+       if (this.busy) {
+        return
+      }
+      this.busy = true
+      this.error = ''
+      documents.cannotFindCover({id: this.doc.id}, {}).then((response) => {
+        this.busy = false
+        if (response.body.result !== 'ok') {
+          this.errors = [response.body.error]
+          return
+        }
+        this.doc.cannot_find_cover = response.body.cannot_find_cover;
+      }, (response) => {
+        // error callback
+        this.errors = ['Save failed because of network or server issues.']
+        console.log(response)
+        if (response.status === 422) {
+          this.errors = Object.keys(response.body).map(k => response.body[k][0])
+          console.log(this.errors)
+        }
+        this.busy = false
+      })
+    },
     submit: function () {
       let documents = this.$resource('/colligator/api/documents{/id}', {}, {
+        cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'},
         saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'}
       })
       if (this.busy) {
@@ -210,6 +247,11 @@ const SearchResults = {
 
       documents.get({q: this.$route.query.q, offset: from}).then((response) => {
         response.body.documents.forEach((doc) => {
+          if (!doc.cannot_find_cover) {
+            // Initialize with default value since Vue cannot detect property addition or deletion
+            // https://vuejs.org/v2/guide/reactivity.html
+            doc.cannot_find_cover = 0;
+          }
           this.documents.push(doc)
           this.from++
         })
