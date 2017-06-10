@@ -1,5 +1,24 @@
+const Documents = Vue.resource(
+  '/colligator/api/documents{/id}',
+  null,
+  {
+    saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'},
+    cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'}
+  },
+  {
+    before: function (request) {
+      if (Documents.previousRequest && Documents.previousRequest.method == 'GET') {
+        Documents.previousRequest.abort()
+      }
+      Documents.previousRequest = request;
+    }
+  }
+)
+
+
 // ---------------------------------------------------------------------------
 // EditableCover.vue
+// import Documents from 'Documents.vue'
 
 const EditableCover = {
   template: `
@@ -62,16 +81,12 @@ const EditableCover = {
       this.url = this.doc.cover ? this.doc.cover.url : ''
     },
     notFound: function () {
-      let documents = this.$resource('/colligator/api/documents{/id}', {}, {
-        saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'},
-        cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'}
-      })
        if (this.busy) {
         return
       }
       this.busy = true
-      documents.cannotFindCover({id: this.doc.id}, {}).then((response) => {
       this.errors = []
+      Documents.cannotFindCover({id: this.doc.id}, {}).then((response) => {
         this.busy = false
         if (response.body.result !== 'ok') {
           this.errors = [response.body.error]
@@ -90,16 +105,12 @@ const EditableCover = {
       })
     },
     submit: function () {
-      let documents = this.$resource('/colligator/api/documents{/id}', {}, {
-        cannotFindCover: {method: 'POST', url: '/colligator/api/documents{/id}/cannotFindCover'},
-        saveCover: {method: 'POST', url: '/colligator/api/documents{/id}/cover'}
-      })
       if (this.busy) {
         return
       }
       this.busy = true
-      documents.saveCover({id: this.doc.id}, {url: this.url}).then((response) => {
       this.errors = []
+      Documents.saveCover({id: this.doc.id}, {url: this.url}).then((response) => {
         this.busy = false
         if (response.body.result !== 'ok') {
           this.errors = [response.body.error]
@@ -213,6 +224,7 @@ const Search = {
 // ---------------------------------------------------------------------------
 // SearchResults.vue
 // import Document from 'Document.vue'
+// import Documents from 'Documents.vue'
 
 const SearchResults = {
   template: `
@@ -259,10 +271,9 @@ const SearchResults = {
       }
       this.busy = true
       console.log('Searching for: ' + this.$route.query.q)
-      let documents = this.$resource('/colligator/api/documents{/id}')
 
       this.error = ''
-      documents.get({q: this.$route.query.q, offset: from}).then((response) => {
+      Documents.get({q: this.$route.query.q, offset: from}).then((response) => {
         this.error = ''
         if (typeof response.body != 'object') {
           this.error = 'Server returned non-JSON response'
