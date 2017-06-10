@@ -131,7 +131,7 @@ const Document = {
       <div>
         <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />
         <div>
-          <h3>{{ doc.title }}</h3>
+          <h3>{{ doc.title }} <span style="color:#018D83">({{doc.year}})</span></h3>
           <p v-if="doc.description">{{ doc.description }}</p>
           ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
           <div v-for="holding in localHoldings">
@@ -163,11 +163,24 @@ const Search = {
   template: `
     <div>
       <form v-on:submit.prevent="submitForm" class="form-inline">
-        Search using <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:
-        <input v-model="query" class="form-control" style="width:500px">
-        <button type="submit" class="btn btn-primary">Search</button>
-        <p>
-          Du kan jo f.eks. søke etter <code>collections:bio1000 AND _missing_:cover</code>
+        Søk med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:
+        <div class="row">
+          <div class="col-md-10">
+            <input v-model="query" class="form-control" style="width:100%">
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary" style="width:100%">Search</button>
+          </div>
+        </div>
+        <p style="margin-top:.4em">
+          Du kan f.eks. søke etter
+          <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0' }}">
+            dokumenter i 42-samlingen som mangler omslagsbilde
+          </router-link>
+          eller
+          <router-link :to="{ path: '/search', query: { q: 'cover.created:&quot;' + today + '&quot;' }}">
+            dokumenter som har fått omslagsbilde i dag
+          </router-link>
         </p>
       </form>
       <router-view></router-view>
@@ -184,7 +197,8 @@ const Search = {
     }
   },
   data: () => ({
-    query: ''
+    query: '',
+    today: (new Date()).toISOString().substr(0,10),
   }),
   methods: {
     submitForm: function () {
