@@ -280,7 +280,7 @@ const Document = {
             ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
             <div v-for="holding in localHoldings">
               {{ holding.barcode }} :
-              {{ holding.callcode }}
+              {{ holding.callcode ? holding.callcode : '(ikke stilt opp på hylla enda)' }}
             </div>
           </div>
           <editable-cover :doc="doc"></editable-cover>
