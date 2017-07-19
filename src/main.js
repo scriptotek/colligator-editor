@@ -293,7 +293,7 @@ const Document = {
   },
   computed: {
     localHoldings: function () {
-      return this.doc.holdings.filter(holding => holding.shelvinglocation === 'k00475')
+      return this.doc.holdings ? this.doc.holdings.filter(holding => holding.shelvinglocation === 'k00475') : []
     }
   },
   components: {
