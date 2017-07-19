@@ -230,7 +230,7 @@ var Document = {
 // import GlobalState from 'GlobalState.vue'
 
 var Search = {
-  template: '\n    <div>\n      <div>\n        Søk med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:\n      </div>\n      <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">\n        <div class="col mr-2">\n          <input v-model="query" class="form-control" style="width:100%">\n        </div>\n        <div>\n          <button type="submit" class="btn btn-primary" style="width:100%">Søk</button>\n        </div>\n      </form>\n      <p>\n        Du kan f.eks. søke etter\n        <router-link :to="{ path: \'/search\', query: { q: \'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0\' }}">\n          dokumenter i 42-samlingen som mangler omslagsbilde\n        </router-link>\n        eller\n        <router-link :to="{ path: \'/search\', query: { q: \'cover.created:&quot;\' + today + \'&quot;\' }}">\n          dokumenter som har fått omslagsbilde i dag\n        </router-link>\n      </p>\n      <router-view></router-view>\n    </div>\n  ',
+  template: '\n    <div>\n      <div>\n        Søk med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:\n      </div>\n      <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">\n        <div class="col-md-6">\n          <input v-model="query" class="form-control" style="width:100%;">\n        </div>\n        <div class="col-sm-6">\n          Sortering:\n          <select v-model="sort" class="form-control">\n            <option value="">(ingen sortering)</option>\n            <option value="year">utgivelsesår</option>\n            <option value="callcodeSortable">hyllesignatur</option>\n            <option value="cover.created">dato for omslagsbilde</option>\n            <option value="created">dato for postopprettelse</option>\n          </select>\n          <select v-model="order" class="form-control">\n            <option value="asc">stigende</option>\n            <option value="desc">synkende</option>\n          </select>\n          <button type="submit" class="btn btn-primary">Søk</button>\n        </div>\n      </form>\n      <p>\n        Du kan f.eks. søke etter\n        <router-link :to="{ path: \'/search\', query: { q: \'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0\' }}">\n          dokumenter i 42-samlingen som mangler omslagsbilde\n        </router-link>\n        eller\n        <router-link :to="{ path: \'/search\', query: { q: \'cover.created:\' + today }}">\n          dokumenter som har fått omslagsbilde i dag\n        </router-link>\n      </p>\n      <router-view></router-view>\n    </div>\n  ',
   created: function created() {
     console.log('Hello, Search created');
     this.getQueryString();
@@ -245,15 +245,23 @@ var Search = {
   data: function data() {
     return {
       query: '',
+      sort: '',
+      order: 'asc',
       today: new Date().toISOString().substr(0, 10)
     };
   },
   methods: {
     submitForm: function submitForm() {
-      this.$router.push({ path: '/search', query: { q: this.query } });
+      this.$router.push({ path: '/search', query: {
+          q: this.query,
+          sort: this.sort == '' ? null : this.sort,
+          order: this.sort == '' ? null : this.order
+        } });
     },
     getQueryString: function getQueryString() {
       this.query = this.$route.query.q;
+      this.sort = this.$route.query.sort;
+      this.order = this.$route.query.order || 'asc';
     },
     checkIp: function checkIp() {
       this.$http.get('/colligator/api/ipcheck').then(function (response) {
@@ -309,7 +317,12 @@ var SearchResults = {
       console.log('Searching for: ' + this.$route.query.q);
 
       this.error = '';
-      Documents.get({ q: this.$route.query.q, offset: from }).then(function (response) {
+      Documents.get({
+        q: this.$route.query.q,
+        offset: from,
+        sort: this.$route.query.sort,
+        order: this.$route.query.order
+      }).then(function (response) {
         _this6.error = '';
         if (_typeof(response.body) != 'object') {
           _this6.error = 'Server returned non-JSON response';
@@ -335,7 +348,7 @@ var SearchResults = {
       }, function (response) {
         // error callback
         console.log(response);
-        _this6.error = 'Sorry, an error occured';
+        _this6.error = 'Beklager, det oppsto en feil';
         _this6.busy = false;
       });
     }

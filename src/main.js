@@ -313,11 +313,23 @@ const Search = {
         Søk med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:
       </div>
       <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">
-        <div class="col mr-2">
-          <input v-model="query" class="form-control" style="width:100%">
+        <div class="col-md-6">
+          <input v-model="query" class="form-control" style="width:100%;">
         </div>
-        <div>
-          <button type="submit" class="btn btn-primary" style="width:100%">Søk</button>
+        <div class="col-sm-6">
+          Sortering:
+          <select v-model="sort" class="form-control">
+            <option value="">(ingen sortering)</option>
+            <option value="year">utgivelsesår</option>
+            <option value="holdings.callcodeSortable">hyllesignatur</option>
+            <option value="cover.created">dato for omslagsbilde</option>
+            <option value="created">dato for postopprettelse</option>
+          </select>
+          <select v-model="order" class="form-control">
+            <option value="asc">stigende</option>
+            <option value="desc">synkende</option>
+          </select>
+          <button type="submit" class="btn btn-primary">Søk</button>
         </div>
       </form>
       <p>
@@ -326,7 +338,7 @@ const Search = {
           dokumenter i 42-samlingen som mangler omslagsbilde
         </router-link>
         eller
-        <router-link :to="{ path: '/search', query: { q: 'cover.created:&quot;' + today + '&quot;' }}">
+        <router-link :to="{ path: '/search', query: { q: 'cover.created:' + today }}">
           dokumenter som har fått omslagsbilde i dag
         </router-link>
       </p>
@@ -346,14 +358,22 @@ const Search = {
   },
   data: () => ({
     query: '',
+    sort: '',
+    order: 'asc',
     today: (new Date()).toISOString().substr(0,10),
   }),
   methods: {
     submitForm: function () {
-      this.$router.push({ path: '/search', query: { q: this.query } })
+      this.$router.push({ path: '/search', query: {
+        q: this.query,
+        sort: (this.sort == '') ? null : this.sort,
+        order: (this.sort == '') ? null : this.order,
+      }})
     },
     getQueryString: function () {
       this.query = this.$route.query.q
+      this.sort = this.$route.query.sort
+      this.order = this.$route.query.order || 'asc';
     },
     checkIp: function () {
       this.$http.get('/colligator/api/ipcheck').then((response) => {
@@ -419,7 +439,12 @@ const SearchResults = {
       console.log('Searching for: ' + this.$route.query.q)
 
       this.error = ''
-      Documents.get({q: this.$route.query.q, offset: from}).then((response) => {
+      Documents.get({
+        q: this.$route.query.q,
+        offset: from,
+        sort: this.$route.query.sort,
+        order: this.$route.query.order,
+      }).then((response) => {
         this.error = ''
         if (typeof response.body != 'object') {
           this.error = 'Server returned non-JSON response'
@@ -445,7 +470,7 @@ const SearchResults = {
       }, (response) => {
         // error callback
         console.log(response)
-        this.error = 'Sorry, an error occured'
+        this.error = 'Beklager, det oppsto en feil'
         this.busy = false
       })
     }
