@@ -451,6 +451,11 @@ const SearchResults = {
           this.busy = false
           return
         }
+        if (response.body.error) {
+          this.error = response.body.error + ':' + response.body.error_message;
+          this.busy = false
+          return
+        }
         response.body.documents.forEach((doc) => {
           if (!doc.cannot_find_cover) {
             // Initialize with default value since Vue cannot detect property addition or deletion
