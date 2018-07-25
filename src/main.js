@@ -334,7 +334,7 @@ const Search = {
       </form>
       <p>
         Du kan f.eks. søke etter
-        <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND _missing_:cover AND cannot_find_cover:0' }}">
+        <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND NOT _exists_:cover AND cannot_find_cover:0' }}">
           dokumenter i 42-samlingen som mangler omslagsbilde
         </router-link>
         eller
