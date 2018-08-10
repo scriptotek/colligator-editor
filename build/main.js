@@ -206,7 +206,7 @@ var EditableCover = {
   // import EditableCover from 'EditableCover.vue'
 
 };var Document = {
-  template: '\n    <li class="list-group-item">\n      <div style="width:100%">\n        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />\n        <div style="flex: 1 1 auto;">\n          <h3>{{ doc.title }} <span style="color:#018D83">({{doc.year}})</span></h3>\n          <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>\n\n          <editable-description :doc="doc"></editable-description>\n          <div class="mb-2" style="font-size:85%; color: #008">\n            ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>\n            <div v-for="holding in localHoldings">\n              {{ holding.barcode }} :\n              {{ holding.callcode ? holding.callcode : \'(ikke stilt opp p\xE5 hylla enda)\' }}\n            </div>\n          </div>\n          <editable-cover :doc="doc"></editable-cover>\n        </div>\n      </div>\n    </li>\n  ',
+  template: '\n    <li class="list-group-item">\n      <div style="width:100%">\n        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />\n        <div style="flex: 1 1 auto;">\n          <h3>\n            {{ doc.title }} <span style="color:#018D83">({{doc.year}})</span>\n           <small>\n           (<a :href="\'https://www.google.no/search?q=\' + encodeURIComponent(doc.title)" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + encodeURIComponent(doc.title)" target="google">Bilde-s\xF8k</a>)</small>\n           </h3>\n          <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>\n\n          <editable-description :doc="doc"></editable-description>\n          <div class="mb-2" style="font-size:85%; color: #008">\n            Utgiver: {{doc.publisher}}<br>\n            ISBN: <span v-for="isbn in doc.isbns">\n            {{ isbn }} \n            (<a :href="\'https://www.google.no/search?q=\' + isbn.replace(/-/g, \'\')" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + isbn.replace(/-/g, \'\')" target="google">Bilde-s\xF8k</a>)\n             </span>\n            <div v-for="holding in localHoldings">\n              {{ holding.barcode }} :\n              {{ holding.callcode ? holding.callcode : \'(ikke stilt opp p\xE5 hylla enda)\' }}\n            </div>\n          </div>\n          <editable-cover :doc="doc"></editable-cover>\n        </div>\n      </div>\n    </li>\n  ',
   props: {
     doc: Object
   },
@@ -227,7 +227,7 @@ var EditableCover = {
   // import GlobalState from 'GlobalState.vue'
 
 };var Search = {
-  template: '\n    <div>\n      <div>\n        S\xF8k med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:\n      </div>\n      <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">\n        <div class="col-md-6">\n          <input v-model="query" class="form-control" style="width:100%;">\n        </div>\n        <div class="col-sm-6">\n          Sortering:\n          <select v-model="sort" class="form-control">\n            <option value="">(ingen sortering)</option>\n            <option value="year">utgivelses\xE5r</option>\n            <option value="holdings.callcodeSortable">hyllesignatur</option>\n            <option value="cover.created">dato for omslagsbilde</option>\n            <option value="created">dato for postopprettelse</option>\n          </select>\n          <select v-model="order" class="form-control">\n            <option value="asc">stigende</option>\n            <option value="desc">synkende</option>\n          </select>\n          <button type="submit" class="btn btn-primary">S\xF8k</button>\n        </div>\n      </form>\n      <p>\n        Du kan f.eks. s\xF8ke etter\n        <router-link :to="{ path: \'/search\', query: { q: \'collections:&quot;samling42&quot; AND NOT _exists_:cover AND cannot_find_cover:0\' }}">\n          dokumenter i 42-samlingen som mangler omslagsbilde\n        </router-link>\n        eller\n        <router-link :to="{ path: \'/search\', query: { q: \'cover.created:\' + today }}">\n          dokumenter som har f\xE5tt omslagsbilde i dag\n        </router-link>\n      </p>\n      <router-view></router-view>\n    </div>\n  ',
+  template: '\n    <div>\n      <div>\n        S\xF8k med <a target="_blank" href="https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html">ElasticSearch query string syntax</a>:\n      </div>\n      <form v-on:submit.prevent="submitForm" class="form-inline no-gutters">\n        <div class="col-md-6">\n          <input v-model="query" class="form-control" style="width:100%;">\n        </div>\n        <div class="col-sm-6">\n          Sortering:\n          <select v-model="sort" class="form-control">\n            <option value="">(ingen sortering)</option>\n            <option value="year">utgivelses\xE5r</option>\n            <option value="holdings.callcodeSortable">hyllesignatur</option>\n            <option value="cover.created">dato for omslagsbilde</option>\n            <option value="created">dato for postopprettelse</option>\n          </select>\n          <select v-model="order" class="form-control">\n            <option value="asc">stigende</option>\n            <option value="desc">synkende</option>\n          </select>\n          <button type="submit" class="btn btn-primary">S\xF8k</button>\n        </div>\n      </form>\n      <p>\n        Du kan f.eks. s\xF8ke etter\n        <router-link :to="{ path: \'/search\', query: { q: \'collections:&quot;samling42&quot; AND NOT _exists_:cover AND cannot_find_cover:0\', sort: \'year\', \'order\': \'desc\' }}">\n          dokumenter i 42-samlingen som mangler omslagsbilde\n        </router-link>\n        eller\n        <router-link :to="{ path: \'/search\', query: { q: \'cover.created:\' + today, sort: \'cover.created\', order: \'desc\' }}">\n          dokumenter som har f\xE5tt omslagsbilde i dag\n        </router-link>\n      </p>\n      <router-view></router-view>\n    </div>\n  ',
   created: function created() {
     console.log('Hello, Search created');
     this.getQueryString();
@@ -242,8 +242,8 @@ var EditableCover = {
   data: function data() {
     return {
       query: '',
-      sort: '',
-      order: 'asc',
+      sort: 'year',
+      order: 'desc',
       today: new Date().toISOString().substr(0, 10)
     };
   },
@@ -257,8 +257,8 @@ var EditableCover = {
     },
     getQueryString: function getQueryString() {
       this.query = this.$route.query.q;
-      this.sort = this.$route.query.sort;
-      this.order = this.$route.query.order || 'asc';
+      this.sort = this.$route.query.sort || 'year';
+      this.order = this.$route.query.order || 'desc';
     },
     checkIp: function checkIp() {
       this.$http.get('/colligator/api/ipcheck').then(function (response) {
@@ -336,7 +336,7 @@ var EditableCover = {
             // https://vuejs.org/v2/guide/reactivity.html
             doc.cannot_find_cover = 0;
           }
-          if (doc.description) {
+          if (doc.description && doc.description.text) {
             doc.description.text = doc.description.text.replace(/Ã¦/g, 'æ');
             doc.description.text = doc.description.text.replace(/Ã¥/g, 'å');
             doc.description.text = doc.description.text.replace(/Ã¸/g, 'ø');

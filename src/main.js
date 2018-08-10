@@ -272,12 +272,22 @@ const Document = {
       <div style="width:100%">
         <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />
         <div style="flex: 1 1 auto;">
-          <h3>{{ doc.title }} <span style="color:#018D83">({{doc.year}})</span></h3>
+          <h3>
+            {{ doc.title }} <span style="color:#018D83">({{doc.year}})</span>
+           <small>
+           (<a :href="'https://www.google.no/search?q=' + encodeURIComponent(doc.title)" target="google">Web-søk</a>
+            / <a :href="'https://www.google.no/search?tbm=isch&q=' + encodeURIComponent(doc.title)" target="google">Bilde-søk</a>)</small>
+           </h3>
           <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>
 
           <editable-description :doc="doc"></editable-description>
           <div class="mb-2" style="font-size:85%; color: #008">
-            ISBN: <span v-for="isbn in doc.isbns"> {{ isbn }} </span>
+            Utgiver: {{doc.publisher}}<br>
+            ISBN: <span v-for="isbn in doc.isbns">
+            {{ isbn }} 
+            (<a :href="'https://www.google.no/search?q=' + isbn.replace(/-/g, '')" target="google">Web-søk</a>
+            / <a :href="'https://www.google.no/search?tbm=isch&q=' + isbn.replace(/-/g, '')" target="google">Bilde-søk</a>)
+             </span>
             <div v-for="holding in localHoldings">
               {{ holding.barcode }} :
               {{ holding.callcode ? holding.callcode : '(ikke stilt opp på hylla enda)' }}
@@ -334,11 +344,11 @@ const Search = {
       </form>
       <p>
         Du kan f.eks. søke etter
-        <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND NOT _exists_:cover AND cannot_find_cover:0' }}">
+        <router-link :to="{ path: '/search', query: { q: 'collections:&quot;samling42&quot; AND NOT _exists_:cover AND cannot_find_cover:0', sort: 'year', 'order': 'desc' }}">
           dokumenter i 42-samlingen som mangler omslagsbilde
         </router-link>
         eller
-        <router-link :to="{ path: '/search', query: { q: 'cover.created:' + today }}">
+        <router-link :to="{ path: '/search', query: { q: 'cover.created:' + today, sort: 'cover.created', order: 'desc' }}">
           dokumenter som har fått omslagsbilde i dag
         </router-link>
       </p>
@@ -358,8 +368,8 @@ const Search = {
   },
   data: () => ({
     query: '',
-    sort: '',
-    order: 'asc',
+    sort: 'year',
+    order: 'desc',
     today: (new Date()).toISOString().substr(0,10),
   }),
   methods: {
@@ -372,8 +382,8 @@ const Search = {
     },
     getQueryString: function () {
       this.query = this.$route.query.q
-      this.sort = this.$route.query.sort
-      this.order = this.$route.query.order || 'asc';
+      this.sort = this.$route.query.sort || 'year';
+      this.order = this.$route.query.order || 'desc';
     },
     checkIp: function () {
       this.$http.get('/colligator/api/ipcheck').then((response) => {
@@ -462,7 +472,7 @@ const SearchResults = {
             // https://vuejs.org/v2/guide/reactivity.html
             doc.cannot_find_cover = 0;
           }
-          if (doc.description) {
+          if (doc.description && doc.description.text) {
             doc.description.text = doc.description.text.replace(/Ã¦/g, 'æ')
             doc.description.text = doc.description.text.replace(/Ã¥/g, 'å')
             doc.description.text = doc.description.text.replace(/Ã¸/g, 'ø')
