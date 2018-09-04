@@ -13,10 +13,10 @@ var Documents = Vue.resource('/colligator/api/documents{/id}', null, {
     }
     Documents.previousRequest = request;
   }
-}
+});
 
 // Since this is a simple app, we use a global state object rather than Vuex
-);var GlobalState = new Vue({
+var GlobalState = new Vue({
   data: function data() {
     return {
       canEdit: false
@@ -206,7 +206,7 @@ var EditableCover = {
   // import EditableCover from 'EditableCover.vue'
 
 };var Document = {
-  template: '\n    <li class="list-group-item">\n      <div style="width:100%">\n        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />\n        <div style="flex: 1 1 auto;">\n          <h3>\n            {{ doc.title }} <span style="color:#018D83">({{doc.year}})</span>\n           <small>\n           (<a :href="\'https://www.google.no/search?q=\' + encodeURIComponent(doc.title)" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + encodeURIComponent(doc.title)" target="google">Bilde-s\xF8k</a>)</small>\n           </h3>\n          <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>\n\n          <editable-description :doc="doc"></editable-description>\n          <div class="mb-2" style="font-size:85%; color: #008">\n            Utgiver: {{doc.publisher}}<br>\n            ISBN: <span v-for="isbn in doc.isbns">\n            {{ isbn }} \n            (<a :href="\'https://www.google.no/search?q=\' + isbn.replace(/-/g, \'\')" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + isbn.replace(/-/g, \'\')" target="google">Bilde-s\xF8k</a>)\n             </span>\n            <div v-for="holding in localHoldings">\n              {{ holding.barcode }} :\n              {{ holding.callcode ? holding.callcode : \'(ikke stilt opp p\xE5 hylla enda)\' }}\n            </div>\n          </div>\n          <editable-cover :doc="doc"></editable-cover>\n        </div>\n      </div>\n    </li>\n  ',
+  template: '\n    <li class="list-group-item">\n      <div style="width:100%">\n        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px; flex: 1 0 auto;" />\n        <div style="flex: 1 1 auto;">\n          <h3>\n            {{ doc.title }} <span style="color:#018D83">({{doc.year}})</span>\n           <small>\n           (<a :href="\'https://www.google.no/search?q=\' + encodeURIComponent(doc.title)" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + encodeURIComponent(doc.title)" target="google">Bilde-s\xF8k</a>)</small>\n           </h3>\n          <span style="background: #eee; border-radius:3px; padding:0 6px; margin-right:5px; font-size:85%; display:inline-block;" v-for="creator in doc.creators"> {{creator.normalizedName}} </span>\n\n          <editable-description :doc="doc"></editable-description>\n          <div class="mb-2" style="font-size:85%; color: #008">\n            Utgiver: {{doc.publisher}}<br>\n            ISBN: <span v-for="isbn in doc.isbns">\n            {{ isbn }}\n            (<a :href="\'https://www.google.no/search?q=\' + isbn.replace(/-/g, \'\')" target="google">Web-s\xF8k</a>\n            / <a :href="\'https://www.google.no/search?tbm=isch&q=\' + isbn.replace(/-/g, \'\')" target="google">Bilde-s\xF8k</a>)\n             </span>\n            <div v-for="holding in localHoldings">\n              {{ holding.barcode }} :\n              {{ holding.callcode ? holding.callcode : \'(ikke stilt opp p\xE5 hylla enda)\' }}\n            </div>\n          </div>\n          <editable-cover :doc="doc"></editable-cover>\n        </div>\n      </div>\n    </li>\n  ',
   props: {
     doc: Object
   },

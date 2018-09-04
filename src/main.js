@@ -270,7 +270,7 @@ const Document = {
   template: `
     <li class="list-group-item">
       <div style="width:100%">
-        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px;" />
+        <img v-if="doc.cover" :src="doc.cover.thumb.url" style="width: 100px; flex: 1 0 auto;" />
         <div style="flex: 1 1 auto;">
           <h3>
             {{ doc.title }} <span style="color:#018D83">({{doc.year}})</span>
@@ -284,7 +284,7 @@ const Document = {
           <div class="mb-2" style="font-size:85%; color: #008">
             Utgiver: {{doc.publisher}}<br>
             ISBN: <span v-for="isbn in doc.isbns">
-            {{ isbn }} 
+            {{ isbn }}
             (<a :href="'https://www.google.no/search?q=' + isbn.replace(/-/g, '')" target="google">Web-søk</a>
             / <a :href="'https://www.google.no/search?tbm=isch&q=' + isbn.replace(/-/g, '')" target="google">Bilde-søk</a>)
              </span>
